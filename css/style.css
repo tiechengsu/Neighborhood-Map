@@ -1,0 +1,60 @@
+html, body, #map {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    position: relative;
+}
+
+form input{
+    display:block;
+    margin:0 0 10px;
+    width: 100%;
+}
+
+#submit{
+    background: #42A5F5;
+    outline:0;
+    border:0;
+}
+
+.wrapper{
+    position: absolute;
+    top: 30px;
+    left:10px;
+    z-index: 1;
+    height:auto;
+    width:auto;
+    border: 1px solid gray;
+}
+
+.searchbar{
+    padding: 7px;
+    background-color: rgba(255,255,255,0.9);
+}
+
+.places{
+    background-color: rgba(255,255,255,0.9);
+}
+
+.resultsList{
+    list-style-type: none;
+    overflow: auto;
+    max-height: 450px;
+    padding: 0;
+}
+
+.resultsList li{
+    text-align: center;
+    border-top: 1px solid #37474F;
+}
+
+.resultsList li h5{
+    color: #01579B;
+}
+
+#map {
+    height: 100%;
+}

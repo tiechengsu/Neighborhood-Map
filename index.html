@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neighborhood Map</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="map"></div>
+    <div class="wrapper">
+
+        <div class="searchbar">
+            <form data-bind="submit: codeAddress">
+                <input type="text" id="address" data-bind="value: address">
+                <input type="text" data-bind="value: types">
+                <input id="submit" type="submit" value="Go!">
+            </form>
+        </div>
+
+
+
+        <div class="places">
+            <div>
+                <p data-bind="text: placesResult"></p>
+            </div>
+            <ul class="resultsList" data-bind="foreach: resultsList">
+                <li data-bind="click:$parent.panTo">
+                    <h5 data-bind="text:name"></h5>
+                    <p data-bind="text:rating"></p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAV7UlM1M5UiuXQLsxw_PGbrLH02wBJxvQ&libraries=places"></script>
+
+    <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.4.2.js"></script>
+    <script src=js/app.js></script>
+</body>
+
+</html>
