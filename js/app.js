@@ -12,7 +12,7 @@ var ViewModel = function(){
     this.resultsList = ko.observableArray();
     this.types = ko.observable('restaurant');
     this.placesResult = ko.observable('Searching for');
-    //this.contentString;
+    this.toggleSymbol = ko.observable('glyphicon glyphicon-collapse-up');
 
     function initMap(){
         geocoder = new google.maps.Geocoder();
@@ -25,6 +25,33 @@ var ViewModel = function(){
         infoWindow = new google.maps.InfoWindow();
         autocomplete = new google.maps.places.Autocomplete(document.getElementById('address'));
         markers = [];
+
+        //remove the right margin of infowindow
+        //refer to http://en.marnoto.com/2014/09/5-formas-de-personalizar-infowindow.html
+        google.maps.event.addListener(infoWindow,'domready',function(){
+            var iwOuter = $('.gm-style-iw');
+            var iwCloseBtn = iwOuter.next();
+
+            iwCloseBtn.css({
+                opacity: '1',
+                left: '300px', top: '3px',
+                'border-radius': '13px',
+                'box-shadow': '0 0 5px #3990B9'
+            });
+
+            iwCloseBtn.mouseout(function(){
+                $(this).css({opacity:'1'});
+            });
+
+            var iwBackground = iwOuter.prev();
+            //remove the background shadow div
+            iwBackground.children(':nth-child(2)').css({'display':'none'});
+            //remove the white background div
+            iwBackground.children(':nth-child(4)').css({'display':'none'});
+
+            iwBackground.children(':nth-child(3)').find('div').children().css({'box-shadow': 'rgba(72, 181, 233, 0.6) 0px 1px 6px', 'z-index' : '1'});
+
+        });
 
         self.placesService();
 
@@ -71,35 +98,82 @@ var ViewModel = function(){
     this.addMarker = function(place){
         var marker = new google.maps.Marker({
             map: map,
-            position: place.geometry.location
+            position: place.geometry.location,
+            title: place.name
         });
 
         markers.push(marker);
 
         google.maps.event.addListener(marker, 'click', function(){
-
-
             service.getDetails(place, function(result,status){
                 if(status !== google.maps.places.PlacesServiceStatus.OK){
                     console.error(status);
                     return;
                 }
                 console.log(result);
-                contentString = '<div><strong>'+ result.name + '</strong><br>' +
-                '<img src="'+ result.photos[0].getUrl({'maxWidth': 50, 'maxHeight': 50})+'">' +
-                '<div>' + result.formatted_address + '</div>' +
-                '<div>' + result.formatted_phone_number + '</div>' +
-                '</div>';
-                console.log("first");
+                var contentString = self.contentString(result);
                 infoWindow.setContent(contentString);
                 infoWindow.open(map, marker);
+                self.addInfo(result);
             });
 
         });
     };
 
-    this.getDetail = function(place){
+    this.contentString = function(result){
+        var contentString = '<div class="iw-container">'+
+                '<div><img src="'+ result.photos[0].getUrl({'maxWidth': 350})+'"></div>' +
+                '<div class="iw-title">'+
+                '<strong>'+ result.name + '</strong>'+
+                '<div class="iw-rating-review-price"></div>' +
+                '</div>' +
+                '<div class="iw-info"><span class="icon glyphicon glyphicon-map-marker"></span>' + result.vicinity + '</div>' +
+                '<div class="iw-info" id="iw-phone"><span class="icon glyphicon glyphicon-earphone"></span> ' + result.formatted_phone_number + '</div>' +
+                '<div class="iw-info" id="iw-website"><a href="'+ result.website+'"><span class="icon glyphicon glyphicon-globe"></span> '+result.website+'</a></div>' +
+                '</div>';
+        return contentString;
+    };
 
+    this.addInfo = function(result){
+        //add opening_hours
+        if(result.opening_hours){
+            if(result.opening_hours.open_now){
+                $('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span>  Open Now</div>').insertAfter($('#iw-phone'));
+            }else{
+                $('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span> Close Now</div>').insertAfter($('#iw-phone'));
+            }
+
+            var weekday_text = '<div class="panel-group">'+
+            '<div class="panel panel-default">'+
+            '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" href="#collapse1">open hours</a></h4></div>' +
+            '<div id="collapse1" class="panel-collapse collapse">'+
+            '<ul class="list-group"></ul>'+
+            '</div></div></div>';
+
+            $(weekday_text).insertBefore($('#iw-website'));
+            result.opening_hours.weekday_text.forEach(function(text){
+                $('.list-group').append('<li class="list-group-item">'+text+'</li>');
+            });
+        }
+        if(result.rating){
+            $(".iw-rating-review-price").append('<span> '+ result.rating +' </span>');
+            var rating = parseInt(result.rating);
+            for(let i=0; i<5; i++){
+                if(i<rating){
+                    $(".iw-rating-review-price").append('<span class="glyphicon glyphicon-star"></span>');
+                }else{
+                    $(".iw-rating-review-price").append('<span class="glyphicon glyphicon-star-empty"></span>');
+                }
+            }
+        }
+        //add price level
+        if(result.price_level){
+            $(".iw-rating-review-price").append(" ");
+            var price_level = parseInt(result.price_level);
+            for(let i=0; i<price_level; i++){
+                $(".iw-rating-review-price").append('<span class="glyphicon glyphicon-usd"></span>');
+            }
+        }
     };
 
 
@@ -107,6 +181,22 @@ var ViewModel = function(){
     this.panTo = function(clickedPlace){
         map.panTo(clickedPlace.geometry.location);
         map.setZoom(16);
+        for(let i=0; i<markers.length; i++){
+            if(clickedPlace.name === markers[i].title){
+                service.getDetails(clickedPlace, function(result,status){
+                    if(status !== google.maps.places.PlacesServiceStatus.OK){
+                        console.error(status);
+                        return;
+                    }
+
+                    var contentString = self.contentString(result);
+                    infoWindow.setContent(contentString);
+                    infoWindow.open(map, markers[i]);
+                    self.addInfo(result);
+                });
+                break;
+            }
+        }
     };
 
     this.clearOverlays = function(){
@@ -114,6 +204,14 @@ var ViewModel = function(){
             markers.pop().setMap(null);
         }
     };
+
+    this.listToggle = function(){
+        if(self.toggleSymbol()==='glyphicon glyphicon-collapse-up'){
+            self.toggleSymbol('glyphicon glyphicon-collapse-down');
+        }else{
+            self.toggleSymbol('glyphicon glyphicon-collapse-up');
+        }
+    }
 
     initMap();
 }

@@ -20,13 +20,13 @@
 
 
         <div class="places">
-            <div>
+            <div class="placesResult">
                 <p data-bind="text: placesResult"></p>
+                <button data-bind="css: toggleSymbol, click: listToggle"></button>
             </div>
-            <ul class="resultsList" data-bind="foreach: resultsList">
+            <ul class="resultsList" data-bind="visible: toggleSymbol() === 'glyphicon glyphicon-collapse-up',foreach: resultsList">
                 <li data-bind="click:$parent.panTo">
                     <h5 data-bind="text:name"></h5>
-                    <p data-bind="text:rating"></p>
                 </li>
             </ul>
         </div>
@@ -38,7 +38,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAV7UlM1M5UiuXQLsxw_PGbrLH02wBJxvQ&libraries=places"></script>
 
-    <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-3.4.2.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.4.2.js"></script>
     <script src=js/app.js></script>
 </body>
 
