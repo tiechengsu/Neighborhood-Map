@@ -84,6 +84,7 @@ form input{
 
 .iw-container{
     height: 300px;
+    width: 300px !important;
 }
 
 .iw-container .iw-title{
@@ -101,6 +102,10 @@ form input{
 
 .iw-rating-review-price{
     font-size:14px;
+}
+
+.stars{
+    color: #EB6E00;
 }
 
 .icon{

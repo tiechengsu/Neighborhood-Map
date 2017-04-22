@@ -128,43 +128,61 @@ var ViewModel = function(){
                 '<div class="iw-rating-review-price"></div>' +
                 '</div>' +
                 '<div class="iw-info"><span class="icon glyphicon glyphicon-map-marker"></span>' + result.vicinity + '</div>' +
-                '<div class="iw-info" id="iw-phone"><span class="icon glyphicon glyphicon-earphone"></span> ' + result.formatted_phone_number + '</div>' +
                 '<div class="iw-info" id="iw-website"><a href="'+ result.website+'"><span class="icon glyphicon glyphicon-globe"></span> '+result.website+'</a></div>' +
+                '<div class="iw-info" id="iw-phone"><span class="icon glyphicon glyphicon-earphone"></span> ' + result.formatted_phone_number + '</div>' +
                 '</div>';
         return contentString;
     };
 
     this.addInfo = function(result){
+        //add reviews
+        if(result.reviews){
+            var review_text = '<div class="panel-group">'+
+            '<div class="panel panel-default">'+
+            '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" href="#collapse2">'+result.reviews.length+' reviews</a></h4></div>' +
+            '<div id="collapse2" class="panel-collapse collapse">'+
+            '<ul class="list-group" id="list-reviews"></ul>'+
+            '</div></div></div>';
+
+            $(review_text).insertAfter($('#iw-phone'));
+            result.reviews.forEach(function(review){
+                //id can't have space in it
+                var id = review.author_name.replace(" ","_");
+                var text = '<li class="list-group-item">'+
+                '<div>'+review.author_name+'</div>'+
+                '<div><span class="stars" id="'+id+'"></span>'+review.text+'</div>'+
+                '</li>';
+                $('#list-reviews').append(text);
+                if(review.rating){
+                    self.generateStar(review.rating,$("#"+id));
+                }
+            });
+
+        }
         //add opening_hours
         if(result.opening_hours){
+            var weekday_text = '<div class="panel-group">'+
+            '<div class="panel panel-default">'+
+            '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" href="#collapse1">open hours</a></h4></div>' +
+            '<div id="collapse1" class="panel-collapse collapse">'+
+            '<ul class="list-group" id="list-hours"></ul>'+
+            '</div></div></div>';
+
+            $(weekday_text).insertAfter($('#iw-phone'));
+            result.opening_hours.weekday_text.forEach(function(text){
+                $('#list-hours').append('<li class="list-group-item">'+text+'</li>');
+            });
+
             if(result.opening_hours.open_now){
                 $('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span>  Open Now</div>').insertAfter($('#iw-phone'));
             }else{
                 $('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span> Close Now</div>').insertAfter($('#iw-phone'));
             }
-
-            var weekday_text = '<div class="panel-group">'+
-            '<div class="panel panel-default">'+
-            '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" href="#collapse1">open hours</a></h4></div>' +
-            '<div id="collapse1" class="panel-collapse collapse">'+
-            '<ul class="list-group"></ul>'+
-            '</div></div></div>';
-
-            $(weekday_text).insertBefore($('#iw-website'));
-            result.opening_hours.weekday_text.forEach(function(text){
-                $('.list-group').append('<li class="list-group-item">'+text+'</li>');
-            });
         }
+
         if(result.rating){
             $(".iw-rating-review-price").append('<span> '+ result.rating +' </span>');
-            var rating = parseInt(result.rating);
-            for(let i=0; i<5; i++){
-                if(i<rating){
-                    $(".iw-rating-review-price").append('<span class="glyphicon glyphicon-star"></span>');
-                }else{
-                    $(".iw-rating-review-price").append('<span class="glyphicon glyphicon-star-empty"></span>');
-                }
-            }
+            self.generateStar(result.rating,$(".iw-rating-review-price"));
         }
         //add price level
         if(result.price_level){
@@ -175,6 +193,17 @@ var ViewModel = function(){
             }
         }
     };
+    //helper function for rating stars
+    this.generateStar = function(rating,selector){
+        var rate = parseInt(rating);
+        for(let i=0; i<5; i++){
+            if(i<rate){
+                selector.append('<span class="glyphicon glyphicon-star"></span>');
+            }else{
+                selector.append('<span class="glyphicon glyphicon-star-empty"></span>');
+            }
+        }
+    }
 
 
     //pan to the place being clicked
