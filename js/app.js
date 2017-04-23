@@ -24,6 +24,10 @@ var ViewModel = function(){
         service = new google.maps.places.PlacesService(map);
         infoWindow = new google.maps.InfoWindow();
         autocomplete = new google.maps.places.Autocomplete(document.getElementById('address'));
+        google.maps.event.addListener(autocomplete,'place_changed',function(){
+            self.address(autocomplete.getPlace().formatted_address);
+        });
+
         markers = [];
 
         //remove the right margin of infowindow
@@ -62,6 +66,7 @@ var ViewModel = function(){
         //clear all the markers first
         self.clearOverlays();
         geocoder.geocode({'address':self.address()},function(results,status){
+            console.log(self.address());
             if(status == 'OK'){
                 self.location = results[0].geometry.location;
                 map.setCenter(self.location);
@@ -122,20 +127,60 @@ var ViewModel = function(){
 
     this.contentString = function(result){
         var contentString = '<div class="iw-container">'+
-                '<div><img src="'+ result.photos[0].getUrl({'maxWidth': 350})+'"></div>' +
                 '<div class="iw-title">'+
                 '<strong>'+ result.name + '</strong>'+
                 '<div class="iw-rating-review-price"></div>' +
                 '</div>' +
-                '<div class="iw-info"><span class="icon glyphicon glyphicon-map-marker"></span>' + result.vicinity + '</div>' +
-                '<div class="iw-info" id="iw-website"><a href="'+ result.website+'"><span class="icon glyphicon glyphicon-globe"></span> '+result.website+'</a></div>' +
-                '<div class="iw-info" id="iw-phone"><span class="icon glyphicon glyphicon-earphone"></span> ' + result.formatted_phone_number + '</div>' +
-                '</div>';
+                '<div id="iw-infos">' +
+                '</div></div>';
         return contentString;
     };
 
     this.addInfo = function(result){
-        //add reviews
+
+        if(result.vicinity){
+            $('#iw-infos').append('<div class="iw-info"><span class="icon glyphicon glyphicon-map-marker"></span>' + result.vicinity + '</div>');
+        }
+
+        //add website
+        if(result.website){
+            $('#iw-infos').append('<div class="iw-info" id="iw-website"><a href="'+ result.website+'"><span class="icon glyphicon glyphicon-globe"></span> '+result.website+'</a></div>');
+        }
+
+        if(result.formatted_phone_number){
+            $('#iw-infos').append('<div class="iw-info" id="iw-phone"><span class="icon glyphicon glyphicon-earphone"></span> ' + result.formatted_phone_number + '</div>');
+        }
+
+
+
+        //add photo
+        if(result.photos){
+            var photo = '<div><img src="'+ result.photos[0].getUrl({'maxWidth': 300})+'"></div>';
+            $(photo).insertBefore($('.iw-title'));
+        }
+
+        //add opening_hours
+        if(result.opening_hours){
+            if(result.opening_hours.open_now){
+                $('#iw-infos').append('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span>  Open Now</div>');
+            }else{
+                $('#iw-infos').append('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span> Close Now</div>');
+            }
+
+            var weekday_text = '<div class="panel-group">'+
+            '<div class="panel panel-default">'+
+            '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" href="#collapse1">open hours</a></h4></div>' +
+            '<div id="collapse1" class="panel-collapse collapse">'+
+            '<ul class="list-group" id="list-hours"></ul>'+
+            '</div></div></div>';
+            $('#iw-infos').append(weekday_text);
+            result.opening_hours.weekday_text.forEach(function(text){
+                $('#list-hours').append('<li class="list-group-item">'+text+'</li>');
+            });
+
+        }
+
+                //add reviews
         if(result.reviews){
             var review_text = '<div class="panel-group">'+
             '<div class="panel panel-default">'+
@@ -144,7 +189,7 @@ var ViewModel = function(){
             '<ul class="list-group" id="list-reviews"></ul>'+
             '</div></div></div>';
 
-            $(review_text).insertAfter($('#iw-phone'));
+            $('#iw-infos').append(review_text);
             result.reviews.forEach(function(review){
                 //id can't have space in it
                 var id = review.author_name.replace(" ","_");
@@ -158,26 +203,6 @@ var ViewModel = function(){
                 }
             });
 
-        }
-        //add opening_hours
-        if(result.opening_hours){
-            var weekday_text = '<div class="panel-group">'+
-            '<div class="panel panel-default">'+
-            '<div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" href="#collapse1">open hours</a></h4></div>' +
-            '<div id="collapse1" class="panel-collapse collapse">'+
-            '<ul class="list-group" id="list-hours"></ul>'+
-            '</div></div></div>';
-
-            $(weekday_text).insertAfter($('#iw-phone'));
-            result.opening_hours.weekday_text.forEach(function(text){
-                $('#list-hours').append('<li class="list-group-item">'+text+'</li>');
-            });
-
-            if(result.opening_hours.open_now){
-                $('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span>  Open Now</div>').insertAfter($('#iw-phone'));
-            }else{
-                $('<div class="iw-info"><span class="icon glyphicon glyphicon-time"></span> Close Now</div>').insertAfter($('#iw-phone'));
-            }
         }
 
         if(result.rating){
