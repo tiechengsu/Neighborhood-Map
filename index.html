@@ -19,11 +19,12 @@
 
 
 
-        <div class="places">
+        <div>
             <div class="placesResult">
                 <p data-bind="text: placesResult"></p>
                 <button data-bind="css: toggleSymbol, click: listToggle"></button>
             </div>
+
             <ul class="resultsList" data-bind="visible: toggleSymbol() === 'glyphicon glyphicon-collapse-up',foreach: resultsList">
                 <li data-bind="click:$parent.panTo">
                     <h5 data-bind="text:name"></h5>
