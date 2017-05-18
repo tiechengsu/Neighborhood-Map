@@ -11,9 +11,13 @@
 
         <div class="searchbar">
             <form data-bind="submit: codeAddress">
-                <input type="text" id="address" data-bind="value: address">
-                <input type="text" data-bind="value: types">
-                <input id="submit" type="submit" value="Go!">
+                <div class="input-group">
+                    <input type="text" class="form-control" id="address" data-bind="value: address">
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" data-bind="value: types">
+                </div>
+                <input class="btn btn-primary" id="submit" type="submit" value="Go!">
             </form>
         </div>
 

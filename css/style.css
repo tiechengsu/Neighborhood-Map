@@ -8,17 +8,19 @@ body{
     position: relative;
 }
 
-form input{
+.btn-primary,
+.input-group{
     display:block;
     margin:0 0 10px;
     width: 100%;
 }
 
-#submit{
-    background: #42A5F5;
-    outline:0;
-    border:0;
+.form-control{
+    margin:0 0 10px !important;
 }
+
+
+
 
 .wrapper{
     position: absolute;
